@@ -11,6 +11,6 @@ services:
   
   frontend:
     build: 
-      context: ./my-app
+      context: ./front
     ports:
       - "3000:3000"
