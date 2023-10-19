@@ -1,46 +1,35 @@
-# Getting Started with Create React App
+# Connecteur-SPO
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Dear Contributors Safae, Imrane, here are some explanations to start with:
 
-## Available Scripts
+### Prerequisites
 
-In the project directory, you can run:
+- **Docker:** [Installation Guide](https://docs.docker.com/get-docker/)
+- **Git:** [Installation Guide](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 
-### `npm start`
+### Setup and Installation
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+1. **Clone the Repository**
+    ```sh
+    git clone [Repository URL]
+    cd [Repository Directory]
+    ```
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+2. **Run with Docker**
+    - Using Docker Compose:
+        ```sh
+        docker-compose up --build
+        ```
 
-### `npm test`
+3. **Setting Up Postman**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+   - Open the file of APIs sent, then change the start of URLs to: `http://localhost:5000`. 
+   For example: `http://localhost:5000/connecteur/modificationLot`, and then send a request.
+  
+   Visit `http://localhost:3000` in your browser and you should see the API information.
 
-### `npm run build`
+### Upcoming Modifications 
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+For any upcoming modifications, we recommend creating branches for each feature or modification. Then, push the code with a commit explaining the modifications. In this way, we will stay well-organized and protect our main code.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+With love <3 from Khaoula ^^
