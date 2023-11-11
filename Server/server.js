@@ -50,6 +50,19 @@ app.post('/connecteur/modificationLot', (req, res) => {
     });
 });
 
+const axios = require('axios');
+const SPO_URL = 'http://localhost:4000/api/subscribe';  // SPO URL 
+
+axios.post(SPO_URL, { callback: 'http://localhost:5000/connecteur/modificationLot' })
+.then(response => {
+    console.log('Subscribed to SPO:', response.data.message);
+})
+.catch(err => {
+    console.error('Failed to subscribe to SPO:', err.message);
+});
+
+
+
 app.get('/connecteur/originalData', (req, res) => {
     console.log('Backend Sent Original Data:', originalDataStorage);
     res.status(200).json({
