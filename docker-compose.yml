@@ -1,16 +1,42 @@
-version: '3'
+version: '2.4' # Using version 2.4 for the health check feature
 
 services:
+
+  # keycloak:
+  #   image: jboss/keycloak:latest
+  #   environment:
+  #     KEYCLOAK_USER: admin
+  #     KEYCLOAK_PASSWORD: admin
+  #   ports:
+  #     - "8080:8080"
+  #   command:
+  #     - "-b"
+  #     - "0.0.0.0"
+
+  # spo:
+  #   build: 
+  #     context: ./SPO-Simul
+  #   ports:
+  #     - "4000:4000"
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+  #     interval: 20s
+  #     timeout: 7s
+  #     retries: 7
+
   backend:
     build: 
       context: ./Server
     ports:
       - "5000:5000"
-    depends_on: 
-      - frontend
-  
+    # depends_on:
+    #   spo:
+    #     condition: service_healthy
+
   frontend:
     build: 
       context: ./front
     ports:
       - "3000:3000"
+    depends_on:
+      - backend
