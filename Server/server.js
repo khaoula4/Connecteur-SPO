@@ -6,6 +6,58 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
+const axios = require('axios');
+
+async function getKeycloakToken() {
+    const tokenEndpoint = 'http://keycloak:8080/auth/realms/Realme_SPO/protocol/openid-connect/token';
+    const clientID = 'Connector';
+    const clientSecret = 'AiQd3X7lpYRzWXrT0aaT6eAbyEKqFLl7';
+
+    const params = new URLSearchParams();
+    params.append('grant_type', 'client_credentials');
+    params.append('client_id', clientID);
+    params.append('client_secret', clientSecret);
+
+    try {
+        const response = await axios.post(tokenEndpoint, params, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        return response.data.access_token;
+    } catch (error) {
+        console.error('Error obtaining Keycloak token:', error.response ? error.response.data : error.message);
+        return null;
+    }
+    
+}
+
+async function subscribeToSPO() {
+    const token = await getKeycloakToken();
+    if (!token) {
+        console.error('Failed to obtain access token, cannot subscribe to SPO');
+        return;
+    }
+
+    const SPO_URL = 'http://spo:4000/api/subscribe';
+    axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+    .then(response => {
+        console.log('Subscribed to SPO response:', response);
+    })    
+    .catch(err => {
+        console.error('Failed to subscribe to SPO:', err.message);
+    });
+}
+
+// Call the function to subscribe
+subscribeToSPO();
+
+
 let originalDataStorage = {};
 let transformedDataStorage = {};
 
@@ -48,17 +100,6 @@ app.post('/connecteur/modificationLot', (req, res) => {
         originalData: originalDataStorage,
         transformedData: transformedDataStorage
     });
-});
-
-const axios = require('axios');
-const SPO_URL = 'http://localhost:4000/api/subscribe';  // SPO URL 
-
-axios.post(SPO_URL, { callback: 'http://localhost:5000/connecteur/modificationLot' })
-.then(response => {
-    console.log('Subscribed to SPO:', response.data.message);
-})
-.catch(err => {
-    console.error('Failed to subscribe to SPO:', err.message);
 });
 
 
