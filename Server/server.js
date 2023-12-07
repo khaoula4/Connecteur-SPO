@@ -33,12 +33,48 @@ async function getKeycloakToken() {
     
 }
 
+
+ 
+// async function subscribeToSPO() {
+//     const token = await getKeycloakToken();
+//     if (!token) {
+//         console.error('Failed to obtain access token, cannot subscribe to SPO');
+//         return;
+//     }
+
+//     const SPO_URL = 'http://spo:4000/api/subscribe';
+//     axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
+//         headers: {
+//             Authorization: `Bearer ${token}`
+//         }
+//     })
+//     .then(response => {
+//         console.log('Subscribed to SPO response:', response);
+//     })    
+//     .catch(err => {
+//         console.error('Failed to subscribe to SPO:', err.message);
+//     });
+// }
+
+const jwt = require('jsonwebtoken');
+
+const SECRET_KEY = 'SECRET'; // This should be a secure, unpredictable key
+
+function generateOneTimeToken() {
+    const payload = {
+        batchId: 'batch123', // Example payload data
+        timestamp: Date.now()
+    };
+
+    const options = {
+        expiresIn: '1h' // Token expires in 1 hour
+    };
+    console.log("Generated Token: ", jwt.sign(payload, SECRET_KEY, options));
+    return jwt.sign(payload, SECRET_KEY, options);
+}
+
 async function subscribeToSPO() {
-    const token = await getKeycloakToken();
-    if (!token) {
-        console.error('Failed to obtain access token, cannot subscribe to SPO');
-        return;
-    }
+    const token = generateOneTimeToken();
 
     const SPO_URL = 'http://spo:4000/api/subscribe';
     axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
@@ -53,6 +89,7 @@ async function subscribeToSPO() {
         console.error('Failed to subscribe to SPO:', err.message);
     });
 }
+
 
 // Call the function to subscribe
 subscribeToSPO();

@@ -31,16 +31,49 @@ app.get('/health', (req, res) => {
     res.status(200).send({ status: 'Healthy' });
 });
 
-// Protéger la route avec Keycloak
-app.post('/api/subscribe', keycloak.protect('subscribe'), (req, res) => {
-    const callbackUrl = req.body.callback;
-    if (callbackUrl) {
-        subscribers.push(callbackUrl);
-        res.status(200).send({ message: 'Subscription successful.' });
+// // Protéger la route avec Keycloak
+// app.post('/api/subscribe', keycloak.protect('subscribe'), (req, res) => {
+//     const callbackUrl = req.body.callback;
+//     if (callbackUrl) {
+//         subscribers.push(callbackUrl);
+//         res.status(200).send({ message: 'Subscription successful.' });
+//     } else {
+//         res.status(400).send({ message: 'Invalid subscription request.' });
+//     }
+// });
+
+const jwt = require('jsonwebtoken');
+
+function validateToken(token) {
+    // Strip 'Bearer ' prefix if present
+    token = token.startsWith('Bearer ') ? token.slice(7) : token;
+
+    try {
+        const decoded = jwt.verify(token, 'SECRET');
+        // Additional validation logic here
+        return true;
+    } catch (error) {
+        console.error('Detailed Token Error: ', error);
+        return false;
+    }
+}
+app.post('/api/subscribe', (req, res) => {
+    const token = req.headers['authorization']; // or req.body.token
+    if (validateToken(token)) {
+        const callbackUrl = req.body.callback;
+        if (callbackUrl) {
+            subscribers.push(callbackUrl);
+            // invalidateToken(token); // Remove or comment out this line
+            res.status(200).send({ message: 'Subscription successful.' });
+        } else {
+            res.status(400).send({ message: 'Invalid subscription request.' });
+        }
     } else {
-        res.status(400).send({ message: 'Invalid subscription request.' });
+        res.status(401).send({ message: 'Invalid or expired token.' });
     }
 });
+
+
 app.post('/api/lots/update-status', (req, res) => {
     const lotData = req.body;
     const status = lotData.statutLot.title;

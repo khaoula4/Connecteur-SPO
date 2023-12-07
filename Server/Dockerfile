@@ -11,8 +11,8 @@ COPY package*.json ./
 RUN npm install 
 
 # Copy the wait script into the image and make it executable
-COPY wait-for-keycloak.sh /wait-for-keycloak.sh
-RUN chmod +x /wait-for-keycloak.sh
+# COPY wait-for-keycloak.sh /wait-for-keycloak.sh
+# RUN chmod +x /wait-for-keycloak.sh
 
 # Copy the local code to the image
 COPY . . 
@@ -21,4 +21,5 @@ COPY . .
 EXPOSE 5000 
 
 # Command to run the application
-CMD [ "/wait-for-keycloak.sh", "node", "server.js" ] 
+# CMD [ "/wait-for-keycloak.sh", "node", "server.js" ] 
+CMD [ "node", "server.js" ] 

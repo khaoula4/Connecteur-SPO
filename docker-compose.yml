@@ -1,20 +1,20 @@
 version: '2.4'
 
 services:
-  keycloak:
-    image: jboss/keycloak
-    environment:
-      - KEYCLOAK_USER=admin
-      - KEYCLOAK_PASSWORD=admin
-    ports:
-      - "8080:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/auth/"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    volumes:
-      - keycloak_data:/opt/jboss/keycloak/standalone/data
+  # keycloak:
+  #   image: jboss/keycloak
+  #   environment:
+  #     - KEYCLOAK_USER=admin
+  #     - KEYCLOAK_PASSWORD=admin
+  #   ports:
+  #     - "8080:8080"
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080/auth/"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #   volumes:
+  #     - keycloak_data:/opt/jboss/keycloak/standalone/data
 
   spo:
     build: 
@@ -26,8 +26,8 @@ services:
       interval: 20s
       timeout: 7s
       retries: 7
-    depends_on:
-      - keycloak
+    # depends_on:
+    #   - keycloak
 
   backend:
     build: 
@@ -36,16 +36,16 @@ services:
       - "5000:5000"
     depends_on:
       - spo
-      - keycloak
+    #   - keycloak
 
   frontend:
     build: 
       context: ./front
     ports:
       - "3000:3000"
-    depends_on:
-      - backend
-      - keycloak
+    # depends_on:
+    #   - backend
+    #   - keycloak
 
-volumes:
-  keycloak_data:
+# volumes:
+#   keycloak_data:
