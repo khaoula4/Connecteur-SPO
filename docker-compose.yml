@@ -43,8 +43,9 @@ services:
       context: ./front
     ports:
       - "3000:3000"
-    # depends_on:
-    #   - backend
+    depends_on:
+      - backend
+      - spo
     #   - keycloak
 
 # volumes:

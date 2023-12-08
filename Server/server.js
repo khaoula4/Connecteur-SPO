@@ -9,29 +9,29 @@ app.use(express.json());
 
 const axios = require('axios');
 
-async function getKeycloakToken() {
-    const tokenEndpoint = 'http://keycloak:8080/auth/realms/Realme_SPO/protocol/openid-connect/token';
-    const clientID = 'Connector';
-    const clientSecret = 'AiQd3X7lpYRzWXrT0aaT6eAbyEKqFLl7';
+// async function getKeycloakToken() {
+//     const tokenEndpoint = 'http://keycloak:8080/auth/realms/Realme_SPO/protocol/openid-connect/token';
+//     const clientID = 'Connector';
+//     const clientSecret = 'AiQd3X7lpYRzWXrT0aaT6eAbyEKqFLl7';
 
-    const params = new URLSearchParams();
-    params.append('grant_type', 'client_credentials');
-    params.append('client_id', clientID);
-    params.append('client_secret', clientSecret);
+//     const params = new URLSearchParams();
+//     params.append('grant_type', 'client_credentials');
+//     params.append('client_id', clientID);
+//     params.append('client_secret', clientSecret);
 
-    try {
-        const response = await axios.post(tokenEndpoint, params, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        });
-        return response.data.access_token;
-    } catch (error) {
-        console.error('Error obtaining Keycloak token:', error.response ? error.response.data : error.message);
-        return null;
-    }
+//     try {
+//         const response = await axios.post(tokenEndpoint, params, {
+//             headers: {
+//                 'Content-Type': 'application/x-www-form-urlencoded'
+//             }
+//         });
+//         return response.data.access_token;
+//     } catch (error) {
+//         console.error('Error obtaining Keycloak token:', error.response ? error.response.data : error.message);
+//         return null;
+//     }
     
-}
+// }
 
 
  
@@ -60,39 +60,76 @@ const jwt = require('jsonwebtoken');
 
 const SECRET_KEY = 'SECRET'; // This should be a secure, unpredictable key
 
-function generateOneTimeToken() {
+// function generateOneTimeToken() {
+//     const payload = {
+//         batchId: 'batch123', // Example payload data
+//         timestamp: Date.now()
+//     };
+
+//     const options = {
+//         expiresIn: '1h' // Token expires in 1 hour
+//     };
+//     console.log("Generated Token: ", jwt.sign(payload, SECRET_KEY, options));
+//     return jwt.sign(payload, SECRET_KEY, options);
+// }
+
+// async function subscribeToSPO() {
+//     const token = generateOneTimeToken();
+
+//     const SPO_URL = 'http://spo:4000/api/subscribe';
+//     axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
+//         headers: {
+//             Authorization: `Bearer ${token}`
+//         }
+//     })
+//     .then(response => {
+//         console.log('Subscribed to SPO response:', response);
+//     })    
+//     .catch(err => {
+//         console.error('Failed to subscribe to SPO:', err.message);
+//     });
+// }
+
+// Function to generate a unique token for each lot subscription
+function generateOneTimeToken(lotId) {
     const payload = {
-        batchId: 'batch123', // Example payload data
+        lotId: lotId,
         timestamp: Date.now()
     };
-
-    const options = {
-        expiresIn: '1h' // Token expires in 1 hour
-    };
-    console.log("Generated Token: ", jwt.sign(payload, SECRET_KEY, options));
+    const options = { expiresIn: '1h' }; // Token expires in 1 hour
     return jwt.sign(payload, SECRET_KEY, options);
 }
 
-async function subscribeToSPO() {
-    const token = generateOneTimeToken();
-
+// Function to subscribe to SPO for a specific lot
+async function subscribeToSPO(lotId, callbackUrl) {
+    const token = generateOneTimeToken(lotId);
     const SPO_URL = 'http://spo:4000/api/subscribe';
-    axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })
-    .then(response => {
-        console.log('Subscribed to SPO response:', response);
-    })    
-    .catch(err => {
-        console.error('Failed to subscribe to SPO:', err.message);
-    });
+
+    try {
+        const response = await axios.post(SPO_URL, { callback: callbackUrl, lotId: lotId }, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        console.log(`Subscribed to SPO for lot ${lotId}, response:`, response.data);
+    } catch (err) {
+        console.error(`Failed to subscribe to SPO for lot ${lotId}:`, err.message);
+    }
 }
 
+// Endpoint to initiate subscription for a specific lot
+app.post('/connecteur/subscribe', (req, res) => {
+    const { lotId, callbackUrl } = req.body;
+    if (!lotId || !callbackUrl) {
+        return res.status(400).send({ message: 'Lot ID and callback URL are required' });
+    }
+    subscribeToSPO(lotId, callbackUrl);
+    res.status(200).send({ message: `Subscription initiated for lot ${lotId}` });
+});
 
-// Call the function to subscribe
-subscribeToSPO();
+
+
+
+// // Call the function to subscribe
+// subscribeToSPO();
 
 
 let originalDataStorage = {};

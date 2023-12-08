@@ -6,6 +6,7 @@ const Main = () => {
     const [transformedData, setTransformedData] = useState(null);
     const [currentView, setCurrentView] = useState('original'); // 'original' or 'transformed'
     const [error, setError] = useState(null);
+    const [lotId, setLotId] = useState('');
 
     useEffect(() => {
         const fetchOriginalData = async () => {
@@ -37,6 +38,26 @@ const Main = () => {
         fetchOriginalData();
         fetchTransformedData();
     }, []);
+
+    const handleSubscribe = async () => {
+        if (!lotId) {
+            alert('Please enter a valid lot ID.');
+            return;
+        }
+
+        try {
+            const response = await axios.post('http://localhost:5000/connecteur/subscribe', {
+                lotId: lotId,
+                callbackUrl: 'http://backend:5000/connecteur/modificationLot' // Replace with actual callback URL
+            });
+
+            console.log('Subscription Response:', response.data);
+            alert(`Subscribed to lot ID: ${lotId}`);
+        } catch (err) {
+            console.error('Error subscribing to lot:', err);
+            alert(`Failed to subscribe to lot ID: ${lotId}`);
+        }
+    };
 
     const toggleView = (view: React.SetStateAction<string>) => {
         setCurrentView(view);
@@ -103,6 +124,29 @@ const Main = () => {
             alignItems: 'center',
             fontSize: '18px' // increased font size
         }}>
+          <div style={{ marginBottom: '20px' }}>
+                <input
+                    type="text"
+                    value={lotId}
+                    onChange={(e) => setLotId(e.target.value)}
+                    placeholder="Enter Lot ID"
+                    style={{ padding: '10px', marginRight: '10px' }}
+                />
+                <button
+                    onClick={handleSubscribe}
+                    style={{
+                        backgroundColor: '#FF5722',
+                        color: 'white',
+                        padding: '10px 20px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '18px'
+                    }}
+                >
+                    Subscribe to Lot
+                </button>
+            </div>
             <h1 style={{ fontSize: '24px' }}>Lot's Data</h1>
             <div style={{ marginBottom: '20px', display: 'flex' }}>
                 <button 
