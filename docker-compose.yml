@@ -1,21 +1,7 @@
 version: '2.4'
 
 services:
-  # keycloak:
-  #   image: jboss/keycloak
-  #   environment:
-  #     - KEYCLOAK_USER=admin
-  #     - KEYCLOAK_PASSWORD=admin
-  #   ports:
-  #     - "8080:8080"
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8080/auth/"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-  #   volumes:
-  #     - keycloak_data:/opt/jboss/keycloak/standalone/data
-
+ 
   spo:
     build: 
       context: ./SPO-Simul
@@ -26,8 +12,7 @@ services:
       interval: 20s
       timeout: 7s
       retries: 7
-    # depends_on:
-    #   - keycloak
+   
 
   backend:
     build: 
@@ -36,7 +21,7 @@ services:
       - "5000:5000"
     depends_on:
       - spo
-    #   - keycloak
+  
 
   frontend:
     build: 
@@ -46,7 +31,4 @@ services:
     depends_on:
       - backend
       - spo
-    #   - keycloak
-
-# volumes:
-#   keycloak_data:
+   
