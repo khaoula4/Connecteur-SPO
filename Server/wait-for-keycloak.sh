@@ -11,3 +11,5 @@ echo "Keycloak is up and running."
 
 # Start the main application
 exec "$@"
+
+# REMARK!!! Need to change CRLF to LF for this file

@@ -7,54 +7,66 @@ app.use(cors());
 app.use(express.json());
 
 
+
 const axios = require('axios');
 
+// Function to obtain an access token from Keycloak
 async function getKeycloakToken() {
+    // Keycloak token endpoint and client credentials
     const tokenEndpoint = 'http://keycloak:8080/auth/realms/Realme_SPO/protocol/openid-connect/token';
     const clientID = 'Connector';
     const clientSecret = 'AiQd3X7lpYRzWXrT0aaT6eAbyEKqFLl7';
 
+    // Preparing request parameters
     const params = new URLSearchParams();
     params.append('grant_type', 'client_credentials');
     params.append('client_id', clientID);
     params.append('client_secret', clientSecret);
 
     try {
+        // Requesting access token from Keycloak
         const response = await axios.post(tokenEndpoint, params, {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         });
-        return response.data.access_token;
+        return response.data.access_token; // Returning the access token
     } catch (error) {
+        // Logging error if token request fails
         console.error('Error obtaining Keycloak token:', error.response ? error.response.data : error.message);
         return null;
     }
-    
 }
 
+// Function to subscribe to the SPO service
 async function subscribeToSPO() {
+    // Getting the Keycloak token
     const token = await getKeycloakToken();
     if (!token) {
         console.error('Failed to obtain access token, cannot subscribe to SPO');
         return;
     }
 
+    // SPO service URL
     const SPO_URL = 'http://spo:4000/api/subscribe';
+
+    // Subscribing to the SPO service with the access token
     axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
         headers: {
             Authorization: `Bearer ${token}`
         }
     })
     .then(response => {
-        console.log('Subscribed to SPO response:', response);
+        // Logging successful subscription
+        console.log('Subscribed to SPO response:', response.data);
     })    
     .catch(err => {
+        // Logging error if subscription fails
         console.error('Failed to subscribe to SPO:', err.message);
     });
 }
 
-// Call the function to subscribe
+// Call the function to subscribe to the SPO service
 subscribeToSPO();
 
 
@@ -87,7 +99,7 @@ function transformData(data) {
 
 app.post('/connecteur/modificationLot', (req, res) => {
     const receivedData = req.body;
-    console.log('Backend Received Data:', receivedData);
+  
 
     // Store original data
     originalDataStorage = receivedData;
@@ -105,7 +117,7 @@ app.post('/connecteur/modificationLot', (req, res) => {
 
 
 app.get('/connecteur/originalData', (req, res) => {
-    console.log('Backend Sent Original Data:', originalDataStorage);
+  
     res.status(200).json({
         message: 'Original Data sent successfully',
         data: originalDataStorage
@@ -113,7 +125,7 @@ app.get('/connecteur/originalData', (req, res) => {
 });
 
 app.get('/connecteur/transformedData', (req, res) => {
-    console.log('Backend Sent Transformed Data:', transformedDataStorage);
+ 
     res.status(200).json({
         message: 'Transformed Data sent successfully',
         data: transformedDataStorage

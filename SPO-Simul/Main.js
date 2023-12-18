@@ -10,7 +10,7 @@ const keycloakConfig = {
     "realm": "Realme_SPO",
     "auth-server-url": "http://keycloak:8080/auth/",
     "resource": "SPO",
-    "bearer-only": true, // Activer le mode Bearer-Only
+    "bearer-only": true, 
     "ssl-required": "external",
     "credentials": {
         "secret": "TinzsZu6jY84l56OYL1RsIYwlbhMqXEx"

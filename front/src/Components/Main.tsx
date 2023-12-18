@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import '../App.css';
 
 const Main = () => {
     const [originalData, setOriginalData] = useState(null);
@@ -87,7 +88,7 @@ const Main = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                fontSize: '18px' // increased font size
+                fontSize: '18px' 
             }}>
                
                 <pre>{JSON.stringify(data, null, 2)}</pre>
@@ -101,7 +102,7 @@ const Main = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            fontSize: '18px' // increased font size
+            fontSize: '18px'
         }}>
             <h1 style={{ fontSize: '24px' }}>Lot's Data</h1>
             <div style={{ marginBottom: '20px', display: 'flex' }}>
@@ -115,7 +116,7 @@ const Main = () => {
                         border: 'none',
                         cursor: 'pointer',
                         marginRight: '10px',
-                        fontSize: '18px' // increased font size for button
+                        fontSize: '18px' 
                     }}
                 >
                     Original Data
@@ -129,7 +130,7 @@ const Main = () => {
                         borderRadius: '4px',
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: '18px' // increased font size for button
+                        fontSize: '18px' 
                     }}
                 >
                     Transformed Data
