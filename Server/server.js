@@ -9,86 +9,12 @@ app.use(express.json());
 
 const axios = require('axios');
 
-// async function getKeycloakToken() {
-//     const tokenEndpoint = 'http://keycloak:8080/auth/realms/Realme_SPO/protocol/openid-connect/token';
-//     const clientID = 'Connector';
-//     const clientSecret = 'AiQd3X7lpYRzWXrT0aaT6eAbyEKqFLl7';
-
-//     const params = new URLSearchParams();
-//     params.append('grant_type', 'client_credentials');
-//     params.append('client_id', clientID);
-//     params.append('client_secret', clientSecret);
-
-//     try {
-//         const response = await axios.post(tokenEndpoint, params, {
-//             headers: {
-//                 'Content-Type': 'application/x-www-form-urlencoded'
-//             }
-//         });
-//         return response.data.access_token;
-//     } catch (error) {
-//         console.error('Error obtaining Keycloak token:', error.response ? error.response.data : error.message);
-//         return null;
-//     }
-    
-// }
 
 
  
-// async function subscribeToSPO() {
-//     const token = await getKeycloakToken();
-//     if (!token) {
-//         console.error('Failed to obtain access token, cannot subscribe to SPO');
-//         return;
-//     }
-
-//     const SPO_URL = 'http://spo:4000/api/subscribe';
-//     axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
-//         headers: {
-//             Authorization: `Bearer ${token}`
-//         }
-//     })
-//     .then(response => {
-//         console.log('Subscribed to SPO response:', response);
-//     })    
-//     .catch(err => {
-//         console.error('Failed to subscribe to SPO:', err.message);
-//     });
-// }
-
 const jwt = require('jsonwebtoken');
 
-const SECRET_KEY = 'SECRET'; // This should be a secure, unpredictable key
-
-// function generateOneTimeToken() {
-//     const payload = {
-//         batchId: 'batch123', // Example payload data
-//         timestamp: Date.now()
-//     };
-
-//     const options = {
-//         expiresIn: '1h' // Token expires in 1 hour
-//     };
-//     console.log("Generated Token: ", jwt.sign(payload, SECRET_KEY, options));
-//     return jwt.sign(payload, SECRET_KEY, options);
-// }
-
-// async function subscribeToSPO() {
-//     const token = generateOneTimeToken();
-
-//     const SPO_URL = 'http://spo:4000/api/subscribe';
-//     axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
-//         headers: {
-//             Authorization: `Bearer ${token}`
-//         }
-//     })
-//     .then(response => {
-//         console.log('Subscribed to SPO response:', response);
-//     })    
-//     .catch(err => {
-//         console.error('Failed to subscribe to SPO:', err.message);
-//     });
-// }
+const SECRET_KEY = 'SECRET'; 
 
 // Function to generate a unique token for each lot subscription
 function generateOneTimeToken(lotId) {
@@ -107,9 +33,9 @@ async function subscribeToSPO(lotId, callbackUrl) {
 
     try {
         const response = await axios.post(SPO_URL, { callback: callbackUrl, lotId: lotId }, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: token}
         });
-        console.log(`Subscribed to SPO for lot ${lotId}, response:`, response.data);
+        console.log(`Subscribed to SPO for lot ${lotId}`);
     } catch (err) {
         console.error(`Failed to subscribe to SPO for lot ${lotId}:`, err.message);
     }
@@ -126,10 +52,6 @@ app.post('/connecteur/subscribe', (req, res) => {
 });
 
 
-
-
-// // Call the function to subscribe
-// subscribeToSPO();
 
 
 let originalDataStorage = {};
@@ -161,7 +83,7 @@ function transformData(data) {
 
 app.post('/connecteur/modificationLot', (req, res) => {
     const receivedData = req.body;
-    console.log('Backend Received Data:', receivedData);
+  
 
     // Store original data
     originalDataStorage = receivedData;
@@ -179,7 +101,7 @@ app.post('/connecteur/modificationLot', (req, res) => {
 
 
 app.get('/connecteur/originalData', (req, res) => {
-    console.log('Backend Sent Original Data:', originalDataStorage);
+   
     res.status(200).json({
         message: 'Original Data sent successfully',
         data: originalDataStorage
@@ -187,7 +109,7 @@ app.get('/connecteur/originalData', (req, res) => {
 });
 
 app.get('/connecteur/transformedData', (req, res) => {
-    console.log('Backend Sent Transformed Data:', transformedDataStorage);
+  
     res.status(200).json({
         message: 'Transformed Data sent successfully',
         data: transformedDataStorage

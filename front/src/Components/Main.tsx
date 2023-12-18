@@ -1,67 +1,67 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import '../App.css';
 
 const Main = () => {
-    const [originalData, setOriginalData] = useState(null);
-    const [transformedData, setTransformedData] = useState(null);
-    const [currentView, setCurrentView] = useState('original'); // 'original' or 'transformed'
-    const [error, setError] = useState(null);
-    const [lotId, setLotId] = useState('');
+    // State hooks for managing component state
+    const [originalData, setOriginalData] = useState(null); // State to store original data
+    const [transformedData, setTransformedData] = useState(null); // State to store transformed data
+    const [currentView, setCurrentView] = useState('original'); // State to track current view ('original' or 'transformed')
+    const [error, setError] = useState(null); // State to store any error messages
+    const [lotId, setLotId] = useState(''); // State to store the lot ID for subscription
 
+    // useEffect hook to fetch data when component mounts
     useEffect(() => {
+        // Async function to fetch original data from backend
         const fetchOriginalData = async () => {
             try {
                 const response = await axios.get('http://localhost:5000/connecteur/originalData');
-                console.log('Frontend Received Original Data:', response.data);console.log('Original Data:', response.data.data);
-                console.log('Transformed Data:', response.data.data);
-                
-                setOriginalData(response.data.data);
+                setOriginalData(response.data.data); // Storing fetched data in state
             } catch (error) {
-                console.error('Error fetching original data:', error);
-            
+               
             }
         };
 
+        // Async function to fetch transformed data from backend
         const fetchTransformedData = async () => {
             try {
                 const response = await axios.get('http://localhost:5000/connecteur/transformedData');
-                console.log('Frontend Received Transformed Data:', response.data);console.log('Original Data:', response.data.data);
-                console.log('Transformed Data:', response.data.data);
-                
-                setTransformedData(response.data.data);
+                setTransformedData(response.data.data); // Storing fetched data in state
             } catch (error) {
-                console.error('Error fetching transformed data:', error);
-                
+             
             }
         };
 
+        // Calling the fetch functions
         fetchOriginalData();
         fetchTransformedData();
     }, []);
 
+    // Function to handle subscription to a lot
     const handleSubscribe = async () => {
         if (!lotId) {
-            alert('Please enter a valid lot ID.');
+            alert('Please enter a valid lot ID.'); // Alert if lot ID is empty
             return;
         }
 
         try {
+            // Sending subscription request to the backend
             const response = await axios.post('http://localhost:5000/connecteur/subscribe', {
                 lotId: lotId,
-                callbackUrl: 'http://backend:5000/connecteur/modificationLot' // Replace with actual callback URL
+                callbackUrl: 'http://backend:5000/connecteur/modificationLot'
             });
-
-            console.log('Subscription Response:', response.data);
-            alert(`Subscribed to lot ID: ${lotId}`);
+            alert(`Subscribed to lot ID: ${lotId}`); // Alert on successful subscription
         } catch (err) {
-            console.error('Error subscribing to lot:', err);
-            alert(`Failed to subscribe to lot ID: ${lotId}`);
+            alert(`Failed to subscribe to lot ID: ${lotId}`); // Alert on subscription failure
         }
     };
 
+    // Function to toggle between original and transformed data views
     const toggleView = (view: React.SetStateAction<string>) => {
         setCurrentView(view);
-    }
+    };
+
+    // TypeScript interfaces for type checking the data structure
     interface Address {
         numVoie: string;
         complement?: string;
@@ -108,7 +108,7 @@ const Main = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                fontSize: '18px' // increased font size
+                fontSize: '18px' 
             }}>
                
                 <pre>{JSON.stringify(data, null, 2)}</pre>
@@ -116,14 +116,16 @@ const Main = () => {
         );
     };
 
+// Main render function of the component
     return (
         <div style={{ 
             padding: '20px', 
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            fontSize: '18px' // increased font size
+            fontSize: '18px' 
         }}>
+             <h1 style={{ fontSize: '30px' }}>Connector-SPO</h1>
           <div style={{ marginBottom: '20px' }}>
                 <input
                     type="text"
@@ -159,7 +161,7 @@ const Main = () => {
                         border: 'none',
                         cursor: 'pointer',
                         marginRight: '10px',
-                        fontSize: '18px' // increased font size for button
+                        fontSize: '18px' 
                     }}
                 >
                     Original Data
@@ -173,7 +175,7 @@ const Main = () => {
                         borderRadius: '4px',
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: '18px' // increased font size for button
+                        fontSize: '18px' 
                     }}
                 >
                     Transformed Data
