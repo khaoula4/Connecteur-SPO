@@ -1,104 +1,50 @@
 const express = require('express');
 const cors = require('cors');
-
+const axios = require('axios');
+const jwt = require('jsonwebtoken');
 const app = express();
+const PORT = 5000;
+
 
 app.use(cors());
 app.use(express.json());
 
+// Secret key for JWT token generation
+const SECRET_KEY = 'SECRET'; 
 
-const axios = require('axios');
-
-async function getKeycloakToken() {
-    const tokenEndpoint = 'http://keycloak:8080/auth/realms/Realme_SPO/protocol/openid-connect/token';
-    const clientID = 'Connector';
-    const clientSecret = 'AiQd3X7lpYRzWXrT0aaT6eAbyEKqFLl7';
-
-    const params = new URLSearchParams();
-    params.append('grant_type', 'client_credentials');
-    params.append('client_id', clientID);
-    params.append('client_secret', clientSecret);
-
-    try {
-        const response = await axios.post(tokenEndpoint, params, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        });
-        return response.data.access_token;
-    } catch (error) {
-        console.error('Error obtaining Keycloak token:', error.response ? error.response.data : error.message);
-        return null;
-    }
-    
-}
-
-
- 
-// async function subscribeToSPO() {
-//     const token = await getKeycloakToken();
-//     if (!token) {
-//         console.error('Failed to obtain access token, cannot subscribe to SPO');
-//         return;
-//     }
-
-//     const SPO_URL = 'http://spo:4000/api/subscribe';
-//     axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
-//         headers: {
-//             Authorization: `Bearer ${token}`
-//         }
-//     })
-//     .then(response => {
-//         console.log('Subscribed to SPO response:', response);
-//     })    
-//     .catch(err => {
-//         console.error('Failed to subscribe to SPO:', err.message);
-//     });
-// }
-
-const jwt = require('jsonwebtoken');
-
-const SECRET_KEY = 'SECRET'; // This should be a secure, unpredictable key
-
+// Function to generate a one-time JWT token
 function generateOneTimeToken() {
-    const payload = {
-        batchId: 'batch123', // Example payload data
-        timestamp: Date.now()
-    };
-
-    const options = {
-        expiresIn: '1h' // Token expires in 1 hour
-    };
-    console.log("Generated Token: ", jwt.sign(payload, SECRET_KEY, options));
+    const payload = { batchId: 'batch123', timestamp: Date.now() };
+    const options = { expiresIn: '1h' };
     return jwt.sign(payload, SECRET_KEY, options);
 }
 
+// Function to subscribe to SPO
 async function subscribeToSPO() {
     const token = generateOneTimeToken();
-
     const SPO_URL = 'http://spo:4000/api/subscribe';
-    axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })
-    .then(response => {
-        console.log('Subscribed to SPO response:', response);
-    })    
-    .catch(err => {
+    try {
+        const response = await axios.post(SPO_URL, { callback: 'http://backend:5000/connecteur/modificationLot' }, {
+            headers: { Authorization:  token }
+        });
+        console.log('Subscribed to SPO response:', response.data);
+    } catch (err) {
         console.error('Failed to subscribe to SPO:', err.message);
-    });
+    }
 }
 
 
-// Call the function to subscribe
+// Automatically call the function to subscribe when the server starts
 subscribeToSPO();
 
 
 let originalDataStorage = {};
 let transformedDataStorage = {};
 
+// Function to transform received data
+
 function transformData(data) {
+    // Transform and return the data in the desired format
     return {
         ref: data.id,
         operation: `${data.operation.title.split(' ')[3].toUpperCase()}`,
@@ -122,9 +68,9 @@ function transformData(data) {
 }
 
 
+// Endpoint to handle lot modification notifications
 app.post('/connecteur/modificationLot', (req, res) => {
     const receivedData = req.body;
-    console.log('Backend Received Data:', receivedData);
 
     // Store original data
     originalDataStorage = receivedData;
@@ -140,23 +86,25 @@ app.post('/connecteur/modificationLot', (req, res) => {
 });
 
 
-
+// Endpoint to retrieve original data
 app.get('/connecteur/originalData', (req, res) => {
-    console.log('Backend Sent Original Data:', originalDataStorage);
+  
     res.status(200).json({
         message: 'Original Data sent successfully',
         data: originalDataStorage
     });
 });
 
+// Endpoint to retrieve transformed data
 app.get('/connecteur/transformedData', (req, res) => {
-    console.log('Backend Sent Transformed Data:', transformedDataStorage);
+ 
     res.status(200).json({
         message: 'Transformed Data sent successfully',
         data: transformedDataStorage
     });
 });
 
+// Start the server
 app.listen(5000, () => {
-    console.log('Server is running on port 5000');
+    console.log(`Connector is running on port ${PORT}`);
 });

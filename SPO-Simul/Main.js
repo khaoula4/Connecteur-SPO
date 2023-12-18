@@ -1,69 +1,47 @@
 const express = require('express');
 const axios = require('axios');
-const Keycloak = require('keycloak-connect');
-
+const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = 4000;
 
-// Configuration de Keycloak pour le mode Bearer-Only
-const keycloakConfig = {
-    "realm": "Realme_SPO",
-    "auth-server-url": "http://keycloak:8080/auth/",
-    "resource": "SPO",
-    "bearer-only": true, // Activer le mode Bearer-Only
-    "ssl-required": "external",
-    "credentials": {
-        "secret": "TinzsZu6jY84l56OYL1RsIYwlbhMqXEx"
-    },
-    "confidential-port": 0
-};
-
-let keycloak = new Keycloak({}, keycloakConfig);
-
+// Array to store the subscribers' callback URLs
 let subscribers = [];
+
+// Array to store used tokens to prevent reuse
+let usedTokens = []; 
 
 app.use(express.json());
 
-// Middleware de Keycloak pour protéger les routes
-app.use(keycloak.middleware());
-
-app.get('/health', (req, res) => {
-    res.status(200).send({ status: 'Healthy' });
-});
-
-// // Protéger la route avec Keycloak
-// app.post('/api/subscribe', keycloak.protect('subscribe'), (req, res) => {
-//     const callbackUrl = req.body.callback;
-//     if (callbackUrl) {
-//         subscribers.push(callbackUrl);
-//         res.status(200).send({ message: 'Subscription successful.' });
-//     } else {
-//         res.status(400).send({ message: 'Invalid subscription request.' });
-//     }
-// });
-
-const jwt = require('jsonwebtoken');
-
+// Function to check if a token has already been used
+function isTokenUsed(token) {
+    return usedTokens.includes(token);
+}
+// Function to validate the JWT token
 function validateToken(token) {
-    // Strip 'Bearer ' prefix if present
-    token = token.startsWith('Bearer ') ? token.slice(7) : token;
-
+    
     try {
+        // Verify the token with the secret key
         const decoded = jwt.verify(token, 'SECRET');
-        // Additional validation logic here
-        return true;
+        if (isTokenUsed(token)) {
+            console.error('Token already used');
+            return null;
+        }
+        usedTokens.push(token); // Mark the token as used
+        return decoded; // or return decoded.lotId 
     } catch (error) {
-        console.error('Detailed Token Error: ', error);
-        return false;
+        console.error('Token validation error:', error.message);
+        return null;
     }
 }
+// Endpoint to handle subscription requests
 app.post('/api/subscribe', (req, res) => {
-    const token = req.headers['authorization']; // or req.body.token
-    if (validateToken(token)) {
+    const token = req.headers['authorization'];
+    const decodedToken = validateToken(token);
+    if (decodedToken) {
         const callbackUrl = req.body.callback;
         if (callbackUrl) {
+             // Add the callback URL to the subscribers list
             subscribers.push(callbackUrl);
-            // invalidateToken(token); // Remove or comment out this line
             res.status(200).send({ message: 'Subscription successful.' });
         } else {
             res.status(400).send({ message: 'Invalid subscription request.' });
@@ -73,29 +51,30 @@ app.post('/api/subscribe', (req, res) => {
     }
 });
 
-
 app.post('/api/lots/update-status', (req, res) => {
     const lotData = req.body;
     const status = lotData.statutLot.title;
 
     if (status === "Achevé de construire") {
+        // Notify all subscribers about the lot status update
         subscribers.forEach(callbackUrl => {
             axios.post(callbackUrl, lotData)
-            .catch(err => {
-                console.error(`Failed to notify subscriber ${callbackUrl}: ${err.message}`);
-            });
+                .catch(err => {
+                    console.error(`Failed to notify subscriber ${callbackUrl}: ${err.message}`);
+                });
         });
-        
         res.status(200).send({ message: 'Lot status is "Achevé de construire", and notifications have been sent.' });
     } else {
         res.status(200).send({ message: 'Lot status updated but no notifications were sent due to status mismatch.' });
     }
 });
 
-
-
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).send({ status: 'Healthy' });
 });
 
+// Start the server
+app.listen(PORT, () => {
+    console.log(`SPO is running on port ${PORT}`);
+});
